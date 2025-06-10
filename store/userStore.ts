@@ -1,7 +1,18 @@
 import { create } from 'zustand';
 
-interface UserData {
-  collections: any[];
+export interface CollectionItem {
+  comment?: string | null;
+  rate: number;
+  name_cn: string;
+}
+
+export interface CollectionsData {
+  data: CollectionItem[];
+  total: number;
+}
+
+export interface UserData {
+  collections: CollectionsData;
 }
 
 interface UserStore {

@@ -74,7 +74,7 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Bangumi AI 推荐助手</CardTitle>
+          <CardTitle>Bangumi AI 数据获取</CardTitle>
           <CardDescription>在下方输入你的用户名以开始</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -145,7 +145,7 @@ export default function Home() {
                   处理中...
                 </>
               ) : (
-                "开始分析"
+                "获取数据"
               )}
             </Button>
           </CardFooter>

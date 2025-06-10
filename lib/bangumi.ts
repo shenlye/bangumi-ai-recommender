@@ -1,3 +1,5 @@
+import type { UserData, CollectionItem } from '../store/userStore';
+
 /**
  * 检查用户是否存在
  * @param username Bangumi 用户名
@@ -19,9 +21,9 @@ export async function checkUserExists(username: string): Promise<boolean> {
  * @param username Bangumi 用户名
  * @param type 收藏类型 (anime|game)
  */
-export async function getUserCollections(username: string, type: 'anime' | 'game') {
+export async function getUserCollections(username: string, type: 'anime' | 'game', limit: number = 50, offset: number = 0) {
   const response = await fetch(
-    `https://api.bgm.tv/v0/users/${encodeURIComponent(username)}/collections?type=2&subject_type=${type === 'anime' ? 2 : 4}`
+    `https://api.bgm.tv/v0/users/${encodeURIComponent(username)}/collections?type=2&limit=${limit}&offset=${offset}&subject_type=${type === 'anime' ? 2 : 4}`
   );
 
   if (!response.ok) {
@@ -35,12 +37,45 @@ export async function getUserCollections(username: string, type: 'anime' | 'game
  * 获取用户收藏
  * @param username Bangumi 用户名
  * @param type 收藏类型 (anime|game)
- * @returns 用户收藏数据
+ * @returns 处理后的用户收藏数据
  */
-export async function fetchUserData(username: string, type: 'anime' | 'game') {
-    
+export async function fetchUserData(username: string, type: 'anime' | 'game'): Promise<UserData> {
   await checkUserExists(username);
   
-  const collections = await getUserCollections(username, type);
-  return { collections };
+  let allData: CollectionItem[] = [];
+  let offset = 0;
+  const limit = 50;
+  let hasMore = true;
+  
+  while (hasMore) {
+    const response = await getUserCollections(username, type, limit, offset);
+
+    const filteredData = response.data.map((item: { subject?: { name_cn?: string; name?: string }; rate: number; comment?: string }): CollectionItem => {
+      const result: CollectionItem = {
+        name_cn: item.subject?.name_cn || item.subject?.name || '未命名',
+        rate: item.rate
+      };
+      
+      if (item.comment) {
+        result.comment = item.comment;
+      }
+      
+      return result;
+    });
+    
+    allData = [...allData, ...filteredData];
+    
+    if (offset + limit >= response.total) {
+      hasMore = false;
+    } else {
+      offset += limit;
+    }
+  }
+  
+  return { 
+    collections: {
+      data: allData,
+      total: allData.length
+    } 
+  };
 }
