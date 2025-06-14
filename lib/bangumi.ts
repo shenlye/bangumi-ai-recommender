@@ -1,5 +1,10 @@
 import type { UserData, CollectionItem } from '../store/userStore';
 
+const headers = {
+  "User-Agent":
+    "shenlye/bangumi-ai-recommender (https://github.com/shenlye/bangumi-ai-recommender)",
+};
+
 /**
  * 检查用户是否存在
  * @param username Bangumi 用户名
@@ -7,7 +12,7 @@ import type { UserData, CollectionItem } from '../store/userStore';
  * @returns 如果用户存在返回 true
  */
 export async function checkUserExists(username: string): Promise<boolean> {
-  const response = await fetch(`https://api.bgm.tv/v0/users/${encodeURIComponent(username)}`);
+  const response = await fetch(`https://api.bgm.tv/v0/users/${encodeURIComponent(username)}`, { headers });
 
   if (!response.ok) {
     throw new Error(response.status === 404 ? "用户不存在" : `请求失败: HTTP ${response.status}`);
