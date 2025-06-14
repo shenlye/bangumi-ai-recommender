@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { fetchUserData } from "@/lib/bangumi";
 import { useUserStore } from "@/store/userStore";
+import type { UserData } from "@/store/userStore";
 
 const types = [
   {
@@ -42,7 +43,7 @@ export default function Home() {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [page, setPage] = useState(1);
   const router = useRouter();
   const setUserData = useUserStore((state) => state.setUserData);
 
@@ -57,10 +58,16 @@ export default function Home() {
     setError(null);
 
     try {
-      const { collections } = await fetchUserData(username, type);
+      const { collections }: UserData = await fetchUserData(
+        username,
+        type,
+        (page) => {
+          setPage(page);
+        }
+      );
       setUserData({ collections });
       console.log("用户收藏数据:", collections);
-      router.push('/results');
+      router.push("/results");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "获取用户数据失败，请稍后重试"
@@ -142,7 +149,7 @@ export default function Home() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  处理中...
+                  正在获取第{page}页数据...
                 </>
               ) : (
                 "获取数据"
