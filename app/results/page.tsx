@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { Button } from "@/components/ui/button";
+import ReactMarkdown from "react-markdown";
 import {
   Card,
   CardContent,
@@ -77,7 +78,9 @@ export default function Results() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">数据结果</h1>
-          <p className="text-sm text-muted-foreground">右侧按钮获取推荐</p>
+          <p className="text-sm text-muted-foreground">
+            右侧按钮获取推荐，请耐心等待
+          </p>
         </div>
         <div className="flex gap-2 md:flex-row flex-col">
           <Button variant="outline" onClick={() => router.push("/")}>
@@ -102,10 +105,8 @@ export default function Results() {
               gemini-2.5-flash-preview-05-20 可能被限制
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <pre className="whitespace-pre-wrap break-words">
-              {recommendResult}
-            </pre>
+          <CardContent className="prose dark:prose-invert mx-auto">
+            <ReactMarkdown>{recommendResult}</ReactMarkdown>
           </CardContent>
         </Card>
       )}
