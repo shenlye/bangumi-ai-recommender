@@ -21,7 +21,7 @@ AI-powered anime/game recommendation system based on Bangumi watch history.
 ## 🚀 技术栈 Tech Stack
 
 - **前端**：Next.js + React + shadcn/ui
-- **后端**：Bangumi 公共 API + LLM 接口
+- **后端**：Bangumi 公共 API + LLM 接口（gemini-2.5-flash-preview-05-20）
 - **推荐逻辑**：通过 prompt 工程引导大模型分析兴趣点
 
 ---
@@ -41,5 +41,5 @@ pnpm dev
 
 配置环境变量
 ```
-ZHIPU_API_KEY=your_key_here
+GEMINI_API_KEY=your_key_here
 ```
