@@ -13,6 +13,12 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft, Copy, RefreshCw } from "lucide-react";
 import React, { useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function Results() {
   const router = useRouter();
@@ -21,10 +27,13 @@ export default function Results() {
   const jsonData = JSON.stringify(collections);
   const [recommendResult, setRecommendResult] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(jsonData);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
     } catch (err) {
       console.error("复制失败:", err);
     }
@@ -87,7 +96,8 @@ export default function Results() {
             <ArrowLeft className="h-4 w-4" /> 返回主页
           </Button>
           <Button onClick={copyToClipboard}>
-            <Copy className="h-4 w-4" /> 复制数据
+            <Copy className="h-4 w-4" />
+            {copied ? "复制成功" : "复制数据"}
           </Button>
           <Button onClick={getRecommendation} disabled={loading}>
             <RefreshCw className="h-4 w-4" />
@@ -118,18 +128,27 @@ export default function Results() {
             以下是获取的数据，可复制到大语言模型进行分析（注：0分为未打分需要说明）
           </CardDescription>
         </CardHeader>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="absolute top-2 right-2"
-          onClick={copyToClipboard}
-          aria-label="复制数据"
-        >
-          <Copy className="h-4 w-4" />
-        </Button>
-        <CardContent className="">
+        <CardContent className="relative">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute top-2 right-6 z-10"
+                  onClick={copyToClipboard}
+                  aria-label="复制数据"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{copied ? "已复制!" : "复制数据"}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <div className="relative">
-            <pre className="whitespace-pre-wrap break-words bg-muted/50 p-4 rounded-md overflow-x-auto text-sm">
+            <pre className="whitespace-pre-wrap break-words bg-muted/50 p-6 rounded-md overflow-x-auto text-sm">
               <code>{jsonData}</code>
             </pre>
           </div>

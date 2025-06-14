@@ -66,7 +66,7 @@ export async function getUserCollections(
 export async function fetchUserData(
   username: string,
   type: "anime" | "game",
-  onPage?: (page: number) => void
+  onPage?: (page: number, totalPages: number) => void
 ): Promise<UserData> {
   await checkUserExists(username);
 
@@ -74,13 +74,19 @@ export async function fetchUserData(
   let offset = 0;
   const limit = 50;
   let hasMore = true;
-
+  let totalPages = 1;
   while (hasMore) {
-    if (onPage) {
-      onPage(offset / limit + 1);
-    }
-    const response = await getUserCollections(username, type, limit, offset);
 
+    const response = await getUserCollections(username, type, limit, offset);
+    
+    if (offset === 0) {
+      totalPages = Math.ceil(response.total / limit) || 1;
+    }
+
+    if (onPage) {
+      onPage(offset / limit + 1, totalPages);
+    }
+    
     const filteredData = response.data.map(
       (
         item: paths["/v0/users/{username}/collections"]["get"]["responses"][200]["content"]["application/json"]["data"][number]

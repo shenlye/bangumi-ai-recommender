@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Loader2, AlertCircleIcon } from "lucide-react";
 import { Command, CommandGroup, CommandItem } from "@/components/ui/command";
+import { Progress } from "@/components/ui/progress";
 import {
   Popover,
   PopoverContent,
@@ -44,6 +45,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const router = useRouter();
   const setUserData = useUserStore((state) => state.setUserData);
 
@@ -61,8 +63,9 @@ export default function Home() {
       const { collections }: UserData = await fetchUserData(
         username,
         type,
-        (page) => {
+        (page, totalPages) => {
           setPage(page);
+          setTotalPages(totalPages);
         }
       );
       setUserData({ collections });
@@ -144,7 +147,7 @@ export default function Home() {
               </Alert>
             )}
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col items-center justify-center">
             <Button type="submit" className="w-full mt-6" disabled={isLoading}>
               {isLoading ? (
                 <>
@@ -155,6 +158,14 @@ export default function Home() {
                 "获取数据"
               )}
             </Button>
+              {isLoading && totalPages > 1 && (
+                <div className="w-full mt-4">
+                  <Progress value={(page / totalPages) * 100} />
+                  <div className="text-xs text-muted-foreground text-center mt-1">
+                    正在获取第{page}页，共{totalPages}页
+                  </div>
+                </div>
+              )}
           </CardFooter>
         </form>
       </Card>
