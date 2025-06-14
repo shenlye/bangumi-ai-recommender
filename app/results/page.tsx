@@ -3,21 +3,47 @@
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/userStore";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, Copy } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { ArrowLeft, Copy, RefreshCw } from "lucide-react";
+import React, { useState } from "react";
 
 export default function Results() {
   const router = useRouter();
   const userData = useUserStore((state) => state.userData);
   const collections = userData?.collections?.data || [];
   const jsonData = JSON.stringify(collections);
+  const [recommendResult, setRecommendResult] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(jsonData);
     } catch (err) {
-      console.error('复制失败:', err);
+      console.error("复制失败:", err);
     }
+  };
+
+  const getRecommendation = async () => {
+    setLoading(true);
+    setRecommendResult("");
+    try {
+      const res = await fetch("/api/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ collections }),
+      });
+      const data = await res.json();
+      setRecommendResult(data.result);
+    } catch (err) {
+      setRecommendResult(`推荐失败${err}`);
+    }
+    setLoading(false);
   };
 
   if (!collections.length) {
@@ -26,12 +52,18 @@ export default function Results() {
         <Card className="w-full max-w-2xl">
           <CardHeader>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" size="icon" onClick={() => router.back()}>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => router.back()}
+              >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
                 <CardTitle>没有找到数据</CardTitle>
-                <CardDescription>该用户还没有添加任何评分或评论</CardDescription>
+                <CardDescription>
+                  该用户还没有添加任何评分或评论
+                </CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -49,18 +81,54 @@ export default function Results() {
             以下是获取的数据，可复制到大语言模型进行分析（注：0分为未打分需要说明）
           </p>
         </div>
-        <div className="space-x-2">
-          <Button variant="outline" onClick={() => router.push('/')}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> 返回主页
+        <div className="flex gap-2 md:flex-row flex-col">
+          <Button variant="outline" onClick={() => router.push("/")}>
+            <ArrowLeft className="h-4 w-4" /> 返回主页
           </Button>
           <Button onClick={copyToClipboard}>
-            <Copy className="mr-2 h-4 w-4" /> 复制数据
+            <Copy className="h-4 w-4" /> 复制数据
+          </Button>
+          <Button onClick={getRecommendation} disabled={loading}>
+            <RefreshCw className="h-4 w-4" />
+            {loading ? "推荐中..." : "获取推荐"}
           </Button>
         </div>
       </div>
-      
-      <Card className="relative">
-        <CardContent className="p-6">
+
+      {recommendResult && (
+        <Card className="my-6">
+          <CardHeader>
+            <CardTitle>推荐结果</CardTitle>
+            <CardDescription>
+              以下是根据用户数据推荐的结果，模型是免费的 GLM4-Flash-250414
+              效果较差
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <pre className="whitespace-pre-wrap break-words">
+              {recommendResult}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="relative mt-6">
+        <CardHeader>
+          <CardTitle>所有数据结果</CardTitle>
+          <CardDescription>
+            以下是获取的数据，可复制到大语言模型进行分析（注：0分为未打分需要说明）
+          </CardDescription>
+        </CardHeader>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="absolute top-2 right-2"
+          onClick={copyToClipboard}
+          aria-label="复制数据"
+        >
+          <Copy className="h-4 w-4" />
+        </Button>
+        <CardContent className="">
           <div className="relative">
             <pre className="whitespace-pre-wrap break-words bg-muted/50 p-4 rounded-md overflow-x-auto text-sm">
               <code>{jsonData}</code>
