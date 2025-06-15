@@ -25,9 +25,9 @@ export default function Results() {
   const userData = useUserStore((state) => state.userData);
   const collections = userData?.collections?.data || [];
   const jsonData = JSON.stringify(collections);
-  const [recommendResult, setRecommendResult] = useState<string>("");
-  const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamedResult, setStreamedResult] = useState("");
 
   const copyToClipboard = async () => {
     try {
@@ -40,20 +40,28 @@ export default function Results() {
   };
 
   const getRecommendation = async () => {
-    setLoading(true);
-    setRecommendResult("");
+    setIsStreaming(true);
+    setStreamedResult("");
     try {
       const res = await fetch("/api/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ collections }),
       });
-      const data = await res.json();
-      setRecommendResult(data.result);
+      if (!res.body) throw new Error("无流数据");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let result = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        result += decoder.decode(value, { stream: true });
+        setStreamedResult(result);
+      }
     } catch (err) {
-      setRecommendResult(`推荐失败${err}`);
+      setStreamedResult(`推荐失败：${err}`);
     }
-    setLoading(false);
+    setIsStreaming(false);
   };
 
   if (!collections.length) {
@@ -99,14 +107,14 @@ export default function Results() {
             <Copy className="h-4 w-4" />
             {copied ? "复制成功" : "复制数据"}
           </Button>
-          <Button onClick={getRecommendation} disabled={loading}>
+          <Button onClick={getRecommendation} disabled={isStreaming}>
             <RefreshCw className="h-4 w-4" />
-            {loading ? "推荐中..." : "获取推荐"}
+            {isStreaming ? "思考中..." : "获取推荐"}
           </Button>
         </div>
       </div>
 
-      {recommendResult && (
+      {streamedResult && (
         <Card className="my-6">
           <CardHeader>
             <CardTitle>推荐结果</CardTitle>
@@ -116,7 +124,7 @@ export default function Results() {
             </CardDescription>
           </CardHeader>
           <CardContent className="prose dark:prose-invert mx-auto">
-            <ReactMarkdown>{recommendResult}</ReactMarkdown>
+            <ReactMarkdown>{streamedResult}</ReactMarkdown>
           </CardContent>
         </Card>
       )}
